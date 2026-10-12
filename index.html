@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Atlas — Country Explorer</title>
+    <meta name="description" content="Search any country and see its flag, capital, population, region, and currency. Powered by the countries.dev API." />
+    <meta name="theme-color" content="#0b0b14" />
+    <link rel="preconnect" href="https://flagcdn.com" crossorigin />
+    <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='28' fill='%237c5cff'/><path d='M12 38c8-6 14-6 20 0s12 6 20 0' stroke='%23fff' stroke-width='4' fill='none' stroke-linecap='round'/></svg>" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Background atmosphere -->
+    <div class="bg-layer" aria-hidden="true">
+      <div class="bg-orb bg-orb--a"></div>
+      <div class="bg-orb bg-orb--b"></div>
+      <div class="bg-grid"></div>
+      <div class="bg-noise"></div>
+    </div>
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Atlas home">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path>
+          </svg>
+        </span>
+        <span class="brand__name">Atlas<span class="brand__dot">.</span></span>
+        <span class="brand__sub">Country Explorer</span>
+      </a>
+
+      <nav class="topbar__nav" aria-label="Primary">
+        <a href="#search-card">Search</a>
+        <a href="#recent-card">Recent</a>
+        <a href="#about-card">About</a>
+      </nav>
+
+      <div class="topbar__actions">
+        <button id="themeToggle" class="theme-toggle" type="button" role="switch" aria-checked="false" aria-label="Switch to light mode" title="Toggle theme">
+          <span class="theme-toggle__track" aria-hidden="true">
+            <span class="theme-toggle__thumb">
+              <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+              </svg>
+              <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </span>
+          </span>
+          <span class="theme-toggle__label" data-label-light="Light" data-label-dark="Dark">Dark</span>
+        </button>
+      </div>
+    </header>
+
+    <main id="main" class="page">
+      <!-- Hero -->
+      <section class="hero">
+        <span class="hero__pill">
+          <span class="hero__pulse" aria-hidden="true"></span>
+          Live API · countries.dev
+        </span>
+        <h1 class="hero__title">
+          Find any country, <span class="hero__title-grad">in a flash.</span>
+        </h1>
+        <p class="hero__lede">
+          Type a country name to see its flag, capital, population, region, and currency.
+          Your last five searches are saved on this device.
+        </p>
+      </section>
+
+      <!-- Bento grid -->
+      <section class="bento" aria-label="Country search results">
+
+        <!-- Search card (spans 2 cols on desktop) -->
+        <article id="search-card" class="bento__card bento__card--search" aria-labelledby="search-title">
+          <header class="card-head">
+            <h2 id="search-title" class="card-head__title">Search</h2>
+            <span class="card-head__hint">Press <kbd>Enter</kbd> or hit Search</span>
+          </header>
+
+          <form id="searchForm" class="search" novalidate>
+            <label class="search__field" for="countryInput">
+              <span class="visually-hidden">Country name</span>
+              <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.5-3.5"></path>
+              </svg>
+              <input
+                id="countryInput"
+                name="country"
+                type="search"
+                inputmode="search"
+                autocomplete="off"
+                autocapitalize="words"
+                spellcheck="false"
+                placeholder="e.g. France, Japan, Brazil…"
+                aria-describedby="searchError"
+                aria-invalid="false"
+                maxlength="80"
+              />
+              <button type="button" id="clearInput" class="search__clear" aria-label="Clear input" hidden>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12"></path>
+                </svg>
+              </button>
+            </label>
+            <button id="searchBtn" class="search__btn" type="submit">
+              <span class="search__btn-label">Search</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M13 5l7 7-7 7"></path>
+              </svg>
+            </button>
+            <p id="searchError" class="search__error" role="alert" aria-live="polite"></p>
+          </form>
+
+          <ul class="hint-chips" aria-label="Try these">
+            <li><button type="button" class="chip" data-quick="France">France</button></li>
+            <li><button type="button" class="chip" data-quick="Japan">Japan</button></li>
+            <li><button type="button" class="chip" data-quick="Brazil">Brazil</button></li>
+            <li><button type="button" class="chip" data-quick="Kenya">Kenya</button></li>
+            <li><button type="button" class="chip" data-quick="Iceland">Iceland</button></li>
+          </ul>
+        </article>
+
+        <!-- Result card (main, big) -->
+        <article id="result-card" class="bento__card bento__card--result" aria-labelledby="result-title">
+          <header class="card-head">
+            <h2 id="result-title" class="card-head__title">Result</h2>
+            <span id="resultMeta" class="card-head__hint" aria-live="polite">Awaiting your first search</span>
+          </header>
+
+          <!-- States: idle / loading / error / data -->
+          <div id="resultBody" class="result">
+
+            <!-- IDLE -->
+            <div id="stateIdle" class="state state--idle" role="status">
+              <div class="state__art" aria-hidden="true">
+                <div class="globe">
+                  <div class="globe__ring"></div>
+                  <div class="globe__ring globe__ring--2"></div>
+                  <div class="globe__core"></div>
+                </div>
+              </div>
+              <h3 class="state__title">Where to next?</h3>
+              <p class="state__text">Search a country above to reveal its flag, capital, population, region, and currency.</p>
+            </div>
+
+            <!-- LOADING -->
+            <div id="stateLoading" class="state state--loading" role="status" hidden>
+              <div class="spinner" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <p class="state__text">Loading country data…</p>
+            </div>
+
+            <!-- ERROR: not found -->
+            <div id="stateNotFound" class="state state--error" role="alert" hidden>
+              <div class="state__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                  <path d="M8 11h6"></path>
+                </svg>
+              </div>
+              <h3 class="state__title">Country not found</h3>
+              <p id="notFoundDetail" class="state__text">Try a different spelling or check the name.</p>
+            </div>
+
+            <!-- ERROR: generic -->
+            <div id="stateError" class="state state--error" role="alert" hidden>
+              <div class="state__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 9v4M12 17h.01"></path>
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                </svg>
+              </div>
+              <h3 class="state__title">Something went wrong</h3>
+              <p class="state__text">Please check your connection and try again.</p>
+              <button id="retryBtn" type="button" class="btn btn--ghost">Retry</button>
+            </div>
+
+            <!-- DATA -->
+            <div id="stateData" class="result__data" hidden>
+              <div class="flag-wrap">
+                <div class="flag-wrap__glow" aria-hidden="true"></div>
+                <img id="flagImg" class="flag" alt="" loading="lazy" decoding="async" />
+                <div class="flag-wrap__ring" aria-hidden="true"></div>
+              </div>
+              <h3 id="countryName" class="result__name">—</h3>
+              <p id="countryOfficial" class="result__official">—</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Stat tiles: capital, region, population, currency -->
+        <article class="bento__card bento__card--stat" data-stat="capital" aria-label="Capital">
+          <div class="stat">
+            <div class="stat__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"></path>
+              </svg>
+            </div>
+            <span class="stat__label">Capital</span>
+            <span id="statCapital" class="stat__value">N/A</span>
+          </div>
+        </article>
+
+        <article class="bento__card bento__card--stat" data-stat="region" aria-label="Region">
+          <div class="stat">
+            <div class="stat__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path>
+              </svg>
+            </div>
+            <span class="stat__label">Region</span>
+            <span id="statRegion" class="stat__value">N/A</span>
+            <span id="statSubregion" class="stat__sub"></span>
+          </div>
+        </article>
+
+        <article class="bento__card bento__card--stat" data-stat="population" aria-label="Population">
+          <div class="stat">
+            <div class="stat__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <span class="stat__label">Population</span>
+            <span id="statPopulation" class="stat__value">N/A</span>
+            <span id="statPopulationRank" class="stat__sub"></span>
+          </div>
+        </article>
+
+        <article class="bento__card bento__card--stat" data-stat="currency" aria-label="Currency">
+          <div class="stat">
+            <div class="stat__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </div>
+            <span class="stat__label">Currency</span>
+            <span id="statCurrency" class="stat__value">N/A</span>
+            <span id="statCurrencySub" class="stat__sub"></span>
+          </div>
+        </article>
+
+        <!-- Recent searches card -->
+        <article id="recent-card" class="bento__card bento__card--recent" aria-labelledby="recent-title">
+          <header class="card-head">
+            <h2 id="recent-title" class="card-head__title">Recent searches</h2>
+            <div class="card-head__actions">
+              <span id="recentCount" class="badge" aria-live="polite">0 / 5</span>
+              <button id="clearRecent" type="button" class="btn btn--ghost btn--sm" hidden>Clear</button>
+            </div>
+          </header>
+          <ul id="recentList" class="recent" aria-label="Recent searches">
+            <!-- empty state -->
+            <li id="recentEmpty" class="recent__empty">
+              <div class="recent__empty-art" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5l3 2"></path>
+                </svg>
+              </div>
+              <p>No recent searches yet. Your last 5 will appear here.</p>
+            </li>
+          </ul>
+        </article>
+
+        <!-- About / tip card -->
+        <article id="about-card" class="bento__card bento__card--about" aria-labelledby="about-title">
+          <header class="card-head">
+            <h2 id="about-title" class="card-head__title">How it works</h2>
+          </header>
+          <ol class="how">
+            <li>
+              <span class="how__num">1</span>
+              <div>
+                <strong>Type a country.</strong>
+                <p>Use the search bar above. Press <kbd>Enter</kbd> to submit.</p>
+              </div>
+            </li>
+            <li>
+              <span class="how__num">2</span>
+              <div>
+                <strong>Read the facts.</strong>
+                <p>Flag, capital, population, region, and currency appear in seconds.</p>
+              </div>
+            </li>
+            <li>
+              <span class="how__num">3</span>
+              <div>
+                <strong>Re-search quickly.</strong>
+                <p>Your last 5 searches are saved on this device — click any to re-run.</p>
+              </div>
+            </li>
+          </ol>
+        </article>
+
+      </section>
+
+      <footer class="foot">
+        <p>Built with HTML, CSS, and vanilla JavaScript · Data from <a href="https://countries.dev" target="_blank" rel="noopener">countries.dev</a></p>
+        <p class="foot__meta">© <span id="year"></span> Atlas · No tracking · Saves only on this device</p>
+      </footer>
+    </main>
+
+    <!-- Toast for transient confirmations -->
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="script.js" defer></script>
+  </body>
+</html>
