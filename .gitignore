@@ -17,6 +17,10 @@ node_modules/
 dist/
 .cache/
 
+# Local tooling scripts used during development
+/.tools_*.ps1
+/.staging/
+
 # Environment
 .env
 .env.local
