@@ -1,47 +1,34 @@
 # Country Explorer
 
-Single-page web app: type a country, get flag, capital, population,
-region, and currency. Plain HTML, CSS, vanilla JS — no build, no deps.
+A single-page web app that displays a country's flag, capital, population, region, and currency. Built with plain HTML, CSS, and JavaScript, with no build step or dependencies.
 
 ## Intuition
 
-Keep it boring. One HTML file, one CSS file, one JS file, one `fetch`.
+Keep the design minimal: one HTML file, one CSS file, one JavaScript file, and a single `fetch` call.
 
 ## Approach
 
-- **One file per concern.** HTML lays out screens, CSS defines the
-  olive/amber/cream palette as `:root` tokens, JS is 12 small
-  single-job function sections.
-- **Five explicit states.** idle, loading, not-found, error, data.
-  `showState(name)` is the only function that flips them.
-- **Network call has a timeout.** `Promise.race([fetch(url),
-  timeoutPromise(12000)])` so a hung request shows the error state
-  instead of a frozen spinner.
-- **Recents via `localStorage`.** Last 5 successful searches, deduped
-  case-insensitively, most recent on top. Click row to re-run, `x` to
-  remove.
-- **Keyboard-first.** `/` focuses search, `Escape` clears it,
-  `aria-invalid` flags bad input.
+- Separate concerns: HTML for layout, CSS for the color palette (`:root` variables), and JavaScript split into small single-purpose functions.
+- Manage five UI states (idle, loading, not found, error, data) through a single `showState(name)` function.
+- Apply a 12-second timeout to the request using `Promise.race`, so a stalled request ends in an error state.
+- Store the last 5 successful searches in `localStorage`, without case-sensitive duplicates and with the newest first.
+- Support keyboard use: `/` focuses search, `Escape` clears it, and `aria-invalid` marks invalid input.
 
 ## User Guide:
 
-- **how to use it**
+- how to use it
 
-  1. Run `serve.ps1` → open `http://127.0.0.1:8123/`.
-  2. Type a country (e.g. `France`, `Japan`, `Brazil`) and press
-     **Enter** — or click a quick-pick chip.
-  3. Result card shows flag, capital, region, subregion, population,
-     and currency.
-  4. **/** jumps to search, **Escape** clears it, **Clear all** wipes
-     recents.
+  1. Run `serve.ps1` and open `http://127.0.0.1:8123/`.
+  2. Enter a country name (e.g. `France`) and press Enter, or select a quick-pick chip.
+  3. View the result card with flag, capital, region, subregion, population, and currency.
+  4. Use `/` to focus search, `Escape` to clear it, and "Clear all" to remove recent searches.
 
-- **what it should do**
+- what it should do
 
-  - Match full or accented names (`Cote d'Ivoire`, `Timor-Leste`).
-  - Spinner while loading, Search button disabled.
-  - "No country matched" on 404 (`xyz123`).
-  - "Network error" + **Try again** on timeout/drop.
-  - Red border on empty / single-char / non-letter input.
-  - Remember last 5 searches across reloads.
-  - Keyboard: `Tab` walks field → search → chips → recents, `Enter`
-    submits, `Escape` clears, `/` focuses search.
+  - Match full and accented country names (e.g. `Cote d'Ivoire`).
+  - Show a spinner and disable the Search button while loading.
+  - Display "No country matched" when no result is found.
+  - Display "Network error" with a **Try again** option on timeout or failure.
+  - Highlight empty, single-character, or non-letter input with a red border.
+  - Persist the last 5 searches across reloads.
+  - Support full keyboard navigation.
