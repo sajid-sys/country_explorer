@@ -24,10 +24,7 @@
     <header class="topbar">
       <a class="brand" href="#" aria-label="Atlas home">
         <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"></path>
-          </svg>
+          <img class="brand__mark-img" src="globe-2-svgrepo-com.svg" alt="" width="24" height="24">
         </span>
         <span class="brand__name">Atlas<span class="brand__dot">.</span></span>
         <span class="brand__sub">Country Explorer</span>
@@ -36,7 +33,6 @@
       <nav class="topbar__nav" aria-label="Primary">
         <a href="#search-card">Search</a>
         <a href="#recent-card">Recent</a>
-        <a href="#about-card">About</a>
       </nav>
 
     </header>
@@ -44,10 +40,6 @@
     <main id="main" class="page">
       <!-- Hero -->
       <section class="hero">
-        <span class="hero__pill">
-          <span class="hero__pulse" aria-hidden="true"></span>
-          Live API · countries.dev
-        </span>
         <h1 class="hero__title">
           Find any country, <span class="hero__title-grad">in a flash.</span>
         </h1>
@@ -67,13 +59,22 @@
             <span class="card-head__hint">Press <kbd>Enter</kbd> or hit Search</span>
           </header>
 
-          <form id="searchForm" class="search" novalidate>
-            <label class="search__field" for="countryInput">
-              <span class="visually-hidden">Country name</span>
-              <svg class="search__icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="11" cy="11" r="7"></circle>
-                <path d="m20 20-3.5-3.5"></path>
-              </svg>
+          <form id="searchForm" class="search" role="search" novalidate>
+            <!-- Field: search icon + input + clear + loading spinner, all on a single 56px row -->
+            <div class="search__field" id="searchField">
+              <span class="search__icon" aria-hidden="true">
+                <!-- magnifier (shown when idle) -->
+                <svg class="search__icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m20 20-3.5-3.5"></path>
+                </svg>
+                <!-- spinner (shown when loading) -->
+                <svg class="search__spinner" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M12 3a9 9 0 1 0 9 9" />
+                </svg>
+              </span>
+
+              <label class="visually-hidden" for="countryInput">Country name</label>
               <input
                 id="countryInput"
                 name="country"
@@ -87,18 +88,23 @@
                 aria-invalid="false"
                 maxlength="80"
               />
-              <button type="button" id="clearInput" class="search__clear" aria-label="Clear input" hidden>
+
+              <button type="button" id="clearInput" class="search__clear" aria-label="Clear input" hidden tabindex="-1">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M18 6 6 18M6 6l12 12"></path>
                 </svg>
               </button>
-            </label>
-            <button id="searchBtn" class="search__btn" type="submit">
+            </div>
+
+            <!-- Submit button (matched 56px height, identical radius to field) -->
+            <button id="searchBtn" class="search__btn" type="submit" aria-label="Search">
               <span class="search__btn-label">Search</span>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg class="search__btn-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M5 12h14M13 5l7 7-7 7"></path>
               </svg>
             </button>
+
+            <!-- Error line (its own row, lives under both field + button) -->
             <p id="searchError" class="search__error" role="alert" aria-live="polite"></p>
           </form>
 
@@ -124,33 +130,7 @@
             <!-- IDLE -->
             <div id="stateIdle" class="state state--idle" role="status">
               <div class="state__art" aria-hidden="true">
-                <svg class="globe-svg" viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
-                  <defs>
-                    <radialGradient id="globeGrad" cx="35%" cy="32%" r="75%">
-                      <stop offset="0%" stop-color="#cfe7ff"/>
-                      <stop offset="55%" stop-color="#5cb1f7"/>
-                      <stop offset="100%" stop-color="#1c7cd1"/>
-                    </radialGradient>
-                    <linearGradient id="globeRing" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#5cb1f7"/>
-                      <stop offset="100%" stop-color="#1c7cd1"/>
-                    </linearGradient>
-                  </defs>
-                  <!-- soft outer glow -->
-                  <circle cx="60" cy="60" r="56" fill="#eaf6ff" opacity="0.9"/>
-                  <!-- sphere -->
-                  <circle cx="60" cy="60" r="42" fill="url(#globeGrad)" stroke="url(#globeRing)" stroke-width="1.5"/>
-                  <!-- meridians -->
-                  <ellipse cx="60" cy="60" rx="42" ry="16" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-                  <ellipse cx="60" cy="60" rx="42" ry="32" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
-                  <ellipse cx="60" cy="60" rx="16" ry="42" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"/>
-                  <ellipse cx="60" cy="60" rx="32" ry="42" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
-                  <!-- equator + prime meridian emphasized -->
-                  <line x1="18" y1="60" x2="102" y2="60" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
-                  <line x1="60" y1="18" x2="60" y2="102" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
-                  <!-- highlight -->
-                  <circle cx="46" cy="46" r="9" fill="rgba(255,255,255,0.45)"/>
-                </svg>
+                <img class="globe-img" src="globe-2-svgrepo-com.svg" alt="" width="120" height="120">
               </div>
               <h3 class="state__title">Where to next?</h3>
               <p class="state__text">Search a country above to reveal its flag, capital, population, region, and currency.</p>
@@ -279,36 +259,6 @@
               <p>No recent searches yet. Your last 5 will appear here.</p>
             </li>
           </ul>
-        </article>
-
-        <!-- About / tip card -->
-        <article id="about-card" class="bento__card bento__card--about" aria-labelledby="about-title">
-          <header class="card-head">
-            <h2 id="about-title" class="card-head__title">How it works</h2>
-          </header>
-          <ol class="how">
-            <li>
-              <span class="how__num">1</span>
-              <div>
-                <strong>Type a country.</strong>
-                <p>Use the search bar above. Press <kbd>Enter</kbd> to submit.</p>
-              </div>
-            </li>
-            <li>
-              <span class="how__num">2</span>
-              <div>
-                <strong>Read the facts.</strong>
-                <p>Flag, capital, population, region, and currency appear in seconds.</p>
-              </div>
-            </li>
-            <li>
-              <span class="how__num">3</span>
-              <div>
-                <strong>Re-search quickly.</strong>
-                <p>Your last 5 searches are saved on this device — click any to re-run.</p>
-              </div>
-            </li>
-          </ol>
         </article>
 
       </section>

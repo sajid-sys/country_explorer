@@ -1,30 +1,9 @@
-/* ============================================================
-   Atlas — Country Explorer
-   Beginner-friendly JavaScript for the Country Explorer app.
-   Reads top-to-bottom. Uses simple var + function declarations
-   and step-by-step "do one thing per line" code so it is easy
-   to explain to anyone.
-   ============================================================ */
-
-/* ------------------------- 1. Settings ------------------------- */
-// The web address of the country data API.
 var API_URL = "https://countries.dev/name/";
-
-// The address of a picture of the country's flag.
 var FLAG_CDN = "https://flagcdn.com/w320/";
-
-// How many past searches to remember.
 var MAX_RECENT = 5;
-
-// Where we save past searches on this device (browser storage).
 var STORAGE_KEY = "atlas_recent_searches";
-
-// Maximum time to wait for the API before giving up (12 seconds).
 var TIMEOUT_MS = 12000;
 
-/* --------------------- 2. Grab the HTML parts -------------------- */
-// Pull each element we need from the page by its id and store it
-// in a variable. This lets us use the same element many times.
 var form         = document.getElementById("searchForm");
 var input        = document.getElementById("countryInput");
 var searchBtn    = document.getElementById("searchBtn");
@@ -58,19 +37,14 @@ var clearRecentBtn = document.getElementById("clearRecent");
 var toastEl        = document.getElementById("toast");
 var yearEl         = document.getElementById("year");
 
-/* --------------------- 3. Track current work -------------------- */
-// Remember the last name the user searched for (so "Retry" can re-run it).
 var lastQuery = "";
 
-/* --------------------- 4. Small helper functions -------------------- */
-// Show a number with commas, like 67000000 -> "67,000,000".
 function formatNumber(n) {
   if (n == null || n === "" || isNaN(Number(n))) return "N/A";
   var num = Number(n);
   return num.toLocaleString("en-US");
 }
 
-// If a value is missing, show "N/A" instead of leaving a blank space.
 function showText(value) {
   if (value == null) return "N/A";
   var str = String(value).trim();
@@ -78,7 +52,6 @@ function showText(value) {
   return str;
 }
 
-// Show a short "x minutes ago" message for the recent list.
 function timeAgo(timestamp) {
   if (!timestamp) return "";
   var seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -93,7 +66,13 @@ function timeAgo(timestamp) {
   return new Date(timestamp).toLocaleDateString();
 }
 
-// Quick pop-up message at the bottom of the screen.
+function setLoading(isLoading) {
+  if (!inputBox) return;
+  if (isLoading) inputBox.setAttribute("data-loading", "true");
+  else inputBox.removeAttribute("data-loading");
+  if (searchBtn) searchBtn.disabled = !!isLoading;
+}
+
 function showToast(message, isError) {
   if (!toastEl) return;
   toastEl.textContent = message;
@@ -103,8 +82,6 @@ function showToast(message, isError) {
   setTimeout(function () { toastEl.hidden = true; }, 2500);
 }
 
-// Switch which "screen" of the result card is visible
-// (idle / loading / not-found / error / data).
 function showState(name) {
   var screens = [stateIdle, stateLoading, stateNotFound, stateError, stateData];
   for (var i = 0; i < screens.length; i++) {
@@ -117,8 +94,6 @@ function showState(name) {
   if (name === "data"      && stateData)     stateData.hidden     = false;
 }
 
-/* --------------------- 5. Check the input -------------------- */
-// Show or clear the red error message under the input.
 function setError(message) {
   if (message) {
     errorBox.textContent = message;
@@ -131,7 +106,6 @@ function setError(message) {
   }
 }
 
-// Make sure the user's input is OK before we search.
 function validateInput(raw) {
   var value = (raw || "").trim();
   if (value === "") {
@@ -142,7 +116,6 @@ function validateInput(raw) {
     setError("Country name must be at least 2 characters.");
     return "";
   }
-  // Only letters, spaces, hyphens, apostrophes, dots, commas, parentheses.
   var ok = /^[A-Za-zÀ-ÿ\s'’\-\.,()]+$/.test(value);
   if (!ok) {
     setError("Use letters, spaces, hyphens, or apostrophes only.");
@@ -152,9 +125,6 @@ function validateInput(raw) {
   return value;
 }
 
-/* --------------------- 6. Read past searches -------------------- */
-// Read the saved list from the browser. Return an empty array if
-// nothing is saved yet (or if the saved data is broken).
 function getRecent() {
   var raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
@@ -167,22 +137,18 @@ function getRecent() {
   }
 }
 
-// Save the list back into the browser.
 function saveRecent(list) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
   } catch (e) {
-    // localStorage may be full or disabled — silently ignore.
   }
 }
 
-// Add a new search to the top of the list (keep only the last MAX_RECENT).
 function addRecent(name, country) {
   var trimmed = name.trim();
   if (!trimmed) return;
   var list = getRecent();
 
-  // Remove any older copy of the same name (case-insensitive).
   var filtered = [];
   for (var i = 0; i < list.length; i++) {
     if (list[i].name.toLowerCase() !== trimmed.toLowerCase()) {
@@ -190,14 +156,12 @@ function addRecent(name, country) {
     }
   }
 
-  // Get the country code (e.g. "fr") to build a flag picture URL.
   var code = country && country.alpha2Code ? country.alpha2Code : "";
   var capital = "";
   if (country && country.capital) {
     capital = Array.isArray(country.capital) ? country.capital[0] : country.capital;
   }
 
-  // Put the new search at the top.
   filtered.unshift({
     name: trimmed,
     ts: Date.now(),
@@ -209,7 +173,6 @@ function addRecent(name, country) {
   drawRecent();
 }
 
-// Remove a single name from the list.
 function removeRecent(name) {
   var list = getRecent();
   var filtered = [];
@@ -222,19 +185,16 @@ function removeRecent(name) {
   drawRecent();
 }
 
-// Remove every saved search.
 function clearAllRecent() {
   saveRecent([]);
   drawRecent();
   showToast("Recent searches cleared");
 }
 
-// Draw the recent-search list on the page.
 function drawRecent() {
   var list = getRecent();
   recentCount.textContent = list.length + " / " + MAX_RECENT;
 
-  // Remove the old items but keep the "empty" placeholder.
   var oldItems = recentList.querySelectorAll(".recent__item");
   for (var i = 0; i < oldItems.length; i++) {
     oldItems[i].remove();
@@ -248,7 +208,6 @@ function drawRecent() {
   recentEmpty.hidden = true;
   clearRecentBtn.hidden = false;
 
-  // Build each row.
   for (var j = 0; j < list.length; j++) {
     var item = list[j];
     var li = document.createElement("li");
@@ -257,7 +216,6 @@ function drawRecent() {
     btn.className = "recent__item";
     btn.setAttribute("aria-label", "Search again for " + item.name);
 
-    // Build the inner HTML of the button.
     var flagHTML = "";
     if (item.code) {
       flagHTML = '<img class="recent__flag" alt="" src="' + FLAG_CDN + item.code + '.png" '
@@ -277,12 +235,9 @@ function drawRecent() {
         '</svg>' +
       '</span>';
 
-    // Fill the text spans safely (textContent is auto-escaped).
     btn.querySelector(".recent__name").textContent = item.name;
     btn.querySelector(".recent__meta").textContent = timeAgo(item.ts);
 
-    // Click on the row -> re-run the search.
-    // Click on the small "x" -> remove from list.
     (function (savedItem) {
       btn.addEventListener("click", function (e) {
         if (e.target.closest(".recent__remove")) {
@@ -301,32 +256,26 @@ function drawRecent() {
   }
 }
 
-/* --------------------- 7. Search the API -------------------- */
-// A small helper that returns a Promise that "fails" after a given time.
-// We use it so the user doesn't wait forever if the API is slow.
 function timeoutPromise(ms) {
   return new Promise(function (_resolve, reject) {
     setTimeout(function () { reject(new Error("Request timed out")); }, ms);
   });
 }
 
-// Call the country API and handle the result.
 function searchCountry(name) {
   var url = API_URL + encodeURIComponent(name.trim());
 
   showState("loading");
   setError("");
   resultMeta.textContent = "Searching for \"" + name.trim() + "\"...";
-  searchBtn.disabled = true;
+  setLoading(true);
 
-  // Race the fetch against the timeout.
   Promise.race([
     fetch(url),
     timeoutPromise(TIMEOUT_MS)
   ])
   .then(function (response) {
     if (!response.ok) {
-      // 404 means the API didn't find this country.
       if (response.status === 404) {
         showState("not-found");
         notFoundDetail.textContent =
@@ -358,21 +307,17 @@ function searchCountry(name) {
     console.error("[Atlas] request failed:", err);
   })
   .then(function () {
-    // This always runs last (success or failure).
-    searchBtn.disabled = false;
+    setLoading(false);
   });
 }
 
-/* --------------------- 8. Show the country on the page -------------------- */
 function drawCountry(country, query) {
-  // Name + flag
   var name      = (country && country.name)  ? String(country.name).trim()  : query;
   var official  = (country && country.nativeName && country.nativeName !== country.name)
                   ? country.nativeName : "";
   var code      = country && country.alpha2Code ? country.alpha2Code.toLowerCase() : "";
   var flagURL   = code ? (FLAG_CDN + code + ".png") : "";
 
-  // Capital: API may return a string or an array.
   var capital   = "";
   if (country && country.capital) {
     capital = Array.isArray(country.capital) ? country.capital[0] : country.capital;
@@ -382,7 +327,6 @@ function drawCountry(country, query) {
   var subregion = country ? country.subregion : "";
   var population= country ? country.population: null;
 
-  // Currency: API may return an object { USD: { name, symbol } } or an array.
   var currencyName = "N/A";
   var currencyCode = "";
   var currencySym  = "";
@@ -403,7 +347,6 @@ function drawCountry(country, query) {
     }
   }
 
-  // Write everything into the page.
   if (flagURL) {
     flagImg.src = flagURL;
     flagImg.alt = "Flag of " + name;
@@ -438,10 +381,7 @@ function drawCountry(country, query) {
   resultMeta.textContent = "Showing results for \"" + query + "\"";
 }
 
-/* --------------------- 9. Start a search -------------------- */
 function runSearch(name) {
-  // If a name was passed in (e.g. from a recent item), use it.
-  // Otherwise read from the input box.
   var value;
   if (name != null) {
     value = String(name).trim();
@@ -461,14 +401,11 @@ function runSearch(name) {
   searchCountry(valid);
 }
 
-/* --------------------- 10. Tiny UI handlers -------------------- */
-// When the user types in the input, show or hide the "x" clear button.
 function onInput() {
   clearBtn.hidden = input.value.length === 0;
   if (errorBox.textContent) setError("");
 }
 
-// When the user clicks the "x" inside the input.
 function onClear() {
   input.value = "";
   clearBtn.hidden = true;
@@ -476,7 +413,6 @@ function onClear() {
   input.focus();
 }
 
-// When the user clicks a quick-pick chip (e.g. "France", "Japan").
 function onChipClick(event) {
   var chip = event.target.closest("[data-quick]");
   if (!chip) return;
@@ -486,53 +422,51 @@ function onChipClick(event) {
   runSearch(value);
 }
 
-// When the user clicks the "Try again" button on the error screen.
 function onRetry() {
   if (lastQuery) runSearch(lastQuery);
   else input.focus();
 }
 
-// Pressing Escape inside the input clears it.
 function onKeyDown(event) {
   if (event.key === "Escape" && document.activeElement === input && input.value) {
     onClear();
   }
 }
 
-/* --------------------- 11. Start the app -------------------- */
 function start() {
-  // Put the current year in the footer.
   if (yearEl) yearEl.textContent = String(new Date().getFullYear());
 
-  // Show whatever past searches are saved.
   drawRecent();
 
-  // When the form is submitted (Enter key or Search button).
   form.addEventListener("submit", function (event) {
-    event.preventDefault();   // stop the page from reloading
+    event.preventDefault();
     runSearch();
   });
 
-  // Live updates while typing.
   input.addEventListener("input", onInput);
   input.addEventListener("keydown", onKeyDown);
   clearBtn.addEventListener("click", onClear);
   clearRecentBtn.addEventListener("click", clearAllRecent);
   retryBtn.addEventListener("click", onRetry);
 
-  // Quick-pick chips anywhere in the page.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== input && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      input.focus({ preventScroll: true });
+      input.select();
+    }
+  });
+
   document.addEventListener("click", function (event) {
     var chip = event.target.closest(".chip[data-quick]");
     if (chip) onChipClick(event);
   });
 
-  // Focus the input when the page finishes loading.
   window.addEventListener("load", function () {
     input.focus({ preventScroll: true });
   });
 }
 
-// Run `start()` as soon as the page is ready.
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", start);
 } else {
